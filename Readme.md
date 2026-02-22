@@ -1,9 +1,3 @@
-## Patched | GitHub Glamour & Miscle's Touch
-
-*Для этих картинок тебе нужно будет сгенерировать PNG-файлы и положить их в папку `docs/img` в твоем репозитории.*
-
----
-
 # 🐱 NeoVault (VaultLib)
 
 **A High-Security Steganographic Password Management Library for Python.**
